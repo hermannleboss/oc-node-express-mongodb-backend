@@ -1,10 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
-
+const Thing = require('./models/Things');
 const app = express();
 mongoose.connect('mongodb+srv://hermann:Yo9jNY2QZ5zGfyYw@cluster0.atull.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
-    { useNewUrlParser: true,
-        useUnifiedTopology: true })
+    {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    })
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch(() => console.log('Connexion à MongoDB échouée !'));
 
@@ -16,10 +18,14 @@ app.use((req, res, next) => {
     next();
 });
 app.post('/api/stuff', (req, res, next) => {
-    console.log(req.body);
-    res.status(201).json({
-        message: 'Object created !'
+    delete req.body._id;
+    const thing = new Thing({
+        ...req.body
     });
+    thing.save()
+        .then(() => res.status(201).json({message: 'Object saved'}))
+        .catch(erro => res.status(400).json({error}));
+
 });
 app.get('/api/stuff', (req, res, next) => {
     const stuff = [
@@ -41,18 +47,5 @@ app.get('/api/stuff', (req, res, next) => {
         },
     ];
     res.status(200).json(stuff);
-});
-app.use((req, res, next) => {
-    res.status(201);
-    next();
-});
-
-app.use((req, res, next) => {
-    res.json({message: 'Your requete is recieve'});
-    next();
-});
-
-app.use((req, res) => {
-    console.log('The respond is sent with success');
 });
 module.exports = app;
